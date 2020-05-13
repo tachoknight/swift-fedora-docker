@@ -25,7 +25,6 @@ BUILD_DIR=$(mktemp -d "${PWD}/b-$FEDORAIMAGE-XXXXXXXXXX")
 # checkout manifest on the wrong platform, and won't 
 # grab everything (e.g. ICU) that the container needs
 # to build successfully.
-echo Creating source directory
 SOURCE_DIR=$(mktemp -d "${PWD}/s-$FEDORAIMAGE-XXXXXXXXXX")
 
 echo Okay, here we go! Running from image $FEDORAIMAGE
