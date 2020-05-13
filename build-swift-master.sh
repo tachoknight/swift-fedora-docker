@@ -38,7 +38,7 @@ docker run \
 $FEDORAIMAGE \
 /bin/bash -lc "cd /source; git clone https://github.com/apple/swift.git swift; ./swift/utils/update-checkout --clone --scheme master; ./swift/utils/build-script --preset buildbot_linux install_destdir=/home/build-user/builds installable_package=/home/build-user/swift-master.tar.gz"
 
-echo *** D O N E ***
+echo ___ D O N E ___
 echo Source is in $SOURCE_DIR
 echo Builds \(if any\) should be in $BUILD_DIR
 
