@@ -13,11 +13,11 @@ START_TS=`date`
 FEDORAIMAGE=$1
 
 # Create a directory to hold the results
-BUILD_DIR=$(mktemp -d -t b-$FEDORAIMAGE-XXXXXXXXXX --tmpdir=$PWD)
+BUILD_DIR=$(mktemp -d "${PWD}/b-$FEDORAIMAGE-XXXXXXXXXX")
 
 # Get the latest source in the right spot...
 echo Getting latest source...
-SOURCE_DIR=$(mktemp -d -t s-$FEDORAIMAGE-XXXXXXXXXX --tmpdir=$PWD)
+SOURCE_DIR=$(mktemp -d "${PWD}/s-$FEDORAIMAGE-XXXXXXXXXX")
 pushd $SOURCE_DIR
 git clone https://github.com/apple/swift.git swift
 ./swift/utils/update-checkout --clone --scheme master
