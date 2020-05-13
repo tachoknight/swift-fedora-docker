@@ -16,12 +16,17 @@ FEDORAIMAGE=$1
 BUILD_DIR=$(mktemp -d "${PWD}/b-$FEDORAIMAGE-XXXXXXXXXX")
 
 # Get the latest source in the right spot...
-echo Getting latest source...
+# NOTE! We get the source *inside* the container. Why? 
+# Because the python script used to get the source 
+# (swift/utils/update-checkout) makes some determinations
+# of what to get based on the platform it's running on.
+# That's fine if we're in an all-Linux environment, but
+# if you're using Docker on a Mac it will base its
+# checkout manifest on the wrong platform, and won't 
+# grab everything (e.g. ICU) that the container needs
+# to build successfully.
+echo Creating source directory
 SOURCE_DIR=$(mktemp -d "${PWD}/s-$FEDORAIMAGE-XXXXXXXXXX")
-pushd $SOURCE_DIR
-git clone https://github.com/apple/swift.git swift
-./swift/utils/update-checkout --clone --scheme master
-popd
 
 echo Okay, here we go! Running from image $FEDORAIMAGE
 docker run \
@@ -32,7 +37,7 @@ docker run \
 -v $BUILD_DIR:/home/build-user:z \
 -w /home/build-user/ \
 $FEDORAIMAGE \
-/bin/bash -lc "cp -r /source/* /home/build-user/; ./swift/utils/build-script --preset buildbot_linux install_destdir=/home/build-user/builds installable_package=/home/build-user/swift-master.tar.gz"
+/bin/bash -lc "cd /source; git clone https://github.com/apple/swift.git swift; ./swift/utils/update-checkout --clone --scheme master; ./swift/utils/build-script --preset buildbot_linux install_destdir=/home/build-user/builds installable_package=/home/build-user/swift-master.tar.gz"
 
 echo *** D O N E ***
 echo Source is in $SOURCE_DIR
