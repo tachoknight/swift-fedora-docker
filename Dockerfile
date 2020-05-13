@@ -23,6 +23,7 @@ python3-six \
 python27 \
 cmake \
 git \
-python-unversioned-command
+python-unversioned-command \
+make
 
 

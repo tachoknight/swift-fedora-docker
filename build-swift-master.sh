@@ -1,13 +1,29 @@
 #!/bin/bash
 
-FEDORAIMAGE=3a849ec8615a
+if [ -z "$1" ]
+then
+      	echo "$0 <image id>"
+	return 1
+else
+	FEDORAIMAGE=$1
+fi
 
+FEDORAIMAGE=$1
+
+# Clear away any previous builds
+echo Clearing build directory...
+pushd ./builds
+rm -rf *
+popd
+
+# Get the latest source in the right spot...
+echo Getting latest source...
 pushd ./source
 git clone https://github.com/apple/swift.git swift
 ./swift/utils/update-checkout --clone --scheme master
 popd
 
-echo Running from image $FEDORAIMAGE
+echo Okay, here we go! Running from image $FEDORAIMAGE
 docker run \
 --security-opt=no-new-privileges  \
 --cap-add=SYS_PTRACE \
