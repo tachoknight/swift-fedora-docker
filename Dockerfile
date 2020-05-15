@@ -1,29 +1,35 @@
 FROM fedora:31
 
+RUN groupadd -g 1000 build-user && \
+    useradd -m -r -u 1000 -g build-user build-user
+
 RUN dnf -y update && dnf install -y \
 clang \
-swig \
-pkgconfig \
+cmake \
+git \
+libatomic-static \
+libblocksruntime-static \
+libbsd-devel \
+libcurl-devel \
+libedit-devel \
+libicu-devel \
+libsqlite3x-devel \
+libuuid-devel \
+libxml2-devel \
+make \
+ninja-build \
 perl-podlators \
-rsync \
+pkgconfig \
+python-unversioned-command \
+python27 \
 python3 \
 python3-devel \
 python3-distro \
-libbsd-devel \
-libxml2-devel \
-libsqlite3x-devel \
-libblocksruntime-static \
-libatomic-static \
-libcurl-devel \
-libuuid-devel \
-libedit-devel \
-libicu-devel \
-ninja-build \
 python3-six \
-python27 \
-cmake \
-git \
-python-unversioned-command \
-make
+rsync \
+swig 
 
+USER build-user
+
+WORKDIR /home/build-user
 

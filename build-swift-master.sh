@@ -14,6 +14,7 @@ FEDORAIMAGE=$1
 
 # Create a directory to hold the results
 BUILD_DIR=$(mktemp -d "${PWD}/b-$FEDORAIMAGE-XXXXXXXXXX")
+chmod 777 $BUILD_DIR
 
 # Get the latest source in the right spot...
 # NOTE! We get the source *inside* the container. Why? 
@@ -26,19 +27,21 @@ BUILD_DIR=$(mktemp -d "${PWD}/b-$FEDORAIMAGE-XXXXXXXXXX")
 # grab everything (e.g. ICU) that the container needs
 # to build successfully.
 SOURCE_DIR=$(mktemp -d "${PWD}/s-$FEDORAIMAGE-XXXXXXXXXX")
+chmod 777 $SOURCE_DIR
 
 echo Okay, here we go! Running from image $FEDORAIMAGE
 docker run \
 --security-opt=no-new-privileges  \
 --cap-add=SYS_PTRACE \
 --security-opt seccomp=unconfined \
+--user 1000:1000 \
 -v $SOURCE_DIR:/source:z \
 -v $BUILD_DIR:/home/build-user:z \
 -w /home/build-user/ \
 $FEDORAIMAGE \
 /bin/bash -lc "cd /source; git clone https://github.com/apple/swift.git swift; ./swift/utils/update-checkout --clone; ./swift/utils/build-script --preset buildbot_linux install_destdir=/home/build-user/builds installable_package=/home/build-user/swift-master.tar.gz > /home/build-user/build-output.txt"
 
-echo ___ D O N E ___
+echo "*** D O N E ***"
 echo Source is in $SOURCE_DIR
 echo Builds \(if any\) should be in $BUILD_DIR
 
