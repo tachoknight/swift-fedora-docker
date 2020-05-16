@@ -3,7 +3,7 @@
 if [ -z "$1" ]
 then
       	echo "$0 <image id>"
-	return 1
+	exit 1
 else
 	FEDORAIMAGE=$1
 fi
@@ -39,7 +39,7 @@ docker run \
 -v $BUILD_DIR:/home/build-user:z \
 -w /home/build-user/ \
 $FEDORAIMAGE \
-/bin/bash -lc "cd /source; git clone https://github.com/apple/swift.git swift; ./swift/utils/update-checkout --clone; ./swift/utils/build-script --preset buildbot_linux install_destdir=/home/build-user/builds installable_package=/home/build-user/swift-master.tar.gz > /home/build-user/build-output.txt"
+/bin/bash -lc "cd /source; git clone https://github.com/apple/swift.git swift; ./swift/utils/update-checkout --clone; ./swift/utils/build-script --preset buildbot_linux,no_test install_destdir=/home/build-user/builds installable_package=/home/build-user/swift-master.tar.gz > /home/build-user/build-output.txt"
 
 echo "*** D O N E ***"
 echo Source is in $SOURCE_DIR
