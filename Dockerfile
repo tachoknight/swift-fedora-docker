@@ -1,13 +1,12 @@
 FROM fedora:31
 
-RUN groupadd -g 1000 build-user && \
-    useradd -m -r -u 1000 -g build-user build-user
+RUN groupadd -g 42 build-user && \
+    useradd -m -r -u 42 -g build-user build-user
 
 RUN dnf -y update && dnf install -y \
 clang \
 cmake \
 git \
-libatomic-static \
 libblocksruntime-static \
 libbsd-devel \
 libcurl-devel \
