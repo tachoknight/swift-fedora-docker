@@ -1,0 +1,46 @@
+podTemplate(containers: [
+    // SET THE DOCKER IMAGE HERE AND DON'T FORGET TO SET THE VERSION ENV VARIABLE BELOW
+    containerTemplate(name: 'fedora', image: 'fedora:32', ttyEnabled: true, command: 'cat'),    
+  ],
+  volumes: [
+    nfsVolume( mountPath: '/home/jenkins/builds', serverAddress: '172.16.3.247', 
+    serverPath: '/srv/jenkins-builds', readOnly: false ),
+    ]) {
+        
+    node(POD_LABEL) {
+        // SET THE VERSION TO THE VALUE ABOVE
+        withEnv(['VERSION=32']) {   
+            stage('Set up Fedora for building') {
+                container('fedora') {
+                    stage('Getting dependencies...') {
+                        sh  """
+                            dnf -y update && dnf install -y clang cmake git libblocksruntime-static libbsd-devel libcurl-devel libedit-devel libicu-devel libsqlite3x-devel libuuid-devel libxml2-devel make ninja-build python-unversioned-command python27 python3 python3-devel python3-distro python3-six rsync swig                        
+                        """
+                        stage('Cloning Swift...') {
+                            sh """
+                                cd ${env.WORKSPACE}
+                                mkdir builds
+                                git clone https://github.com/apple/swift.git swift 
+                                ./swift/utils/update-checkout --clone 
+                            """                        
+                            stage('Building Swift') {
+                                sh """
+                                    cd ${env.WORKSPACE}
+                                    ./swift/utils/build-script --preset buildbot_linux,no_test install_destdir=${env.WORKSPACE}/builds installable_package=${env.WORKSPACE}/swift-master.tar.gz
+                                """
+                            }
+                            stage('Copying artifacts') {
+                                sh """
+                                    cd ${env.WORKSPACE}
+                                    mkdir -p /home/jenkins/builds/fedora${VERSION}
+                                    cp -r builds /home/jenkins/fedora${VERSION}
+                                    cp -r ${env.WORKSPACE}/swift-master.tar.gz /home/jenkins/fedora${VERSION}
+                                """
+                            }
+                        }                       
+                    }
+                }            
+            }       
+        }
+    }
+}

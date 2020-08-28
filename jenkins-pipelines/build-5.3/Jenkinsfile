@@ -1,0 +1,56 @@
+podTemplate(containers: [
+    // SET THE DOCKER IMAGE HERE AND DON'T FORGET TO SET THE VERSION ENV VARIABLE BELOW
+    containerTemplate(name: 'fedora', image: 'fedora:32', ttyEnabled: true, command: 'cat'),    
+  ],
+  volumes: [
+    nfsVolume( mountPath: '/home/jenkins/builds', serverAddress: '172.16.3.247', 
+    serverPath: '/srv/jenkins-builds', readOnly: false ),
+    ]) {
+        
+    node(POD_LABEL) {
+        // SET THE VERSION TO THE VALUE ABOVE
+        withEnv(['VERSION=32','BRANCH=swift-5.3']) {   
+            stage('Set up Fedora for building') {
+                container('fedora') {
+                    stage('Getting dependencies...') {
+                        sh  """
+                            dnf -y update && dnf install -y git fedora-packager rpmdevtools           
+                        """                    
+                        stage('Setting up build environment') {
+                            sh """
+                                cd ${env.WORKSPACE}
+                                git clone https://github.com/tachoknight/swift-lang-packaging-fedora.git
+                                pushd swift-lang-packaging-fedora
+                                git checkout ${BRANCH}
+                                popd
+                                mkdir -p ${env.WORKSPACE}/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+                                pushd swift-lang-packaging-fedora
+                                cp *.patch ${env.WORKSPACE}/rpmbuild/SOURCES || true
+                                cp *.conf ${env.WORKSPACE}/rpmbuild/SOURCES || true
+                                cp swift-lang.spec ${env.WORKSPACE}/rpmbuild/SPECS
+                                popd
+                            """                                              
+                            stage('Building Swift') {
+                                sh """
+                                    cd ${env.WORKSPACE}/rpmbuild/SPECS                                    
+                                    spectool -g -R ./swift-lang.spec
+                                    dnf builddep -y ./swift-lang.spec
+                                    rpmbuild -ba ./swift-lang.spec
+                                """
+                            }
+                            stage('Copying artifacts') {
+                                sh """                                    
+                                    cd ${env.WORKSPACE}
+                                    mkdir -p /home/jenkins/builds/fedora${VERSION}-rpms
+                                    cp -r ${env.WORKSPACE}/rpmbuild/SRPMS/* /home/jenkins/fedora${VERSION}-rpms
+                                    cp -r ${env.WORKSPACE}/rpmbuild/RPMS/* /home/jenkins/fedora${VERSION}-rpms                                    
+                                """
+ 
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
